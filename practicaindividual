@@ -1,0 +1,211 @@
+1º- Averigua que privilegios de sistema hay en MySQL y como se asignan a un usuario.
+En MySQL existen cinco niveles distintos de privilegios:
+- Globales => se aplican al conjunto de todas las bases de datos en un servidor.
+- Base de datos => se refiere a bases de datos individuales, a todos los objetos que contiene cada base de datos.
+- De tabla => se aplican a tablas individuales, y por tanto. a todas las columnas de esa tabla
+- De columna => se aplica a una columna de una tabla concreta
+- De rutina => se aplican a los procedimientos almacenados
+
+- Privilegios
+MariaDB [information_schema]> show privileges;
++-------------------------+---------------------------------------+-------------------------------------------------------+
+| Privilege               | Context                               | Comment                                               |
++-------------------------+---------------------------------------+-------------------------------------------------------+
+| Alter                   | Tables                                | To alter the table                                    |
+| Alter routine           | Functions,Procedures                  | To alter or drop stored functions/procedures          |
+| Create                  | Databases,Tables,Indexes              | To create new databases and tables                    |
+| Create routine          | Databases                             | To use CREATE FUNCTION/PROCEDURE                      |
+| Create temporary tables | Databases                             | To use CREATE TEMPORARY TABLE                         |
+| Create view             | Tables                                | To create new views                                   |
+| Create user             | Server Admin                          | To create new users                                   |
+| Delete                  | Tables                                | To delete existing rows                               |
+| Delete versioning rows  | Tables                                | To delete versioning table historical rows            |
+| Drop                    | Databases,Tables                      | To drop databases, tables, and views                  |
+| Event                   | Server Admin                          | To create, alter, drop and execute events             |
+| Execute                 | Functions,Procedures                  | To execute stored routines                            |
+| File                    | File access on server                 | To read and write files on the server                 |
+| Grant option            | Databases,Tables,Functions,Procedures | To give to other users those privileges you possess   |
+| Index                   | Tables                                | To create or drop indexes                             |
+| Insert                  | Tables                                | To insert data into tables                            |
+| Lock tables             | Databases                             | To use LOCK TABLES (together with SELECT privilege)   |
+| Process                 | Server Admin                          | To view the plain text of currently executing queries |
+| Proxy                   | Server Admin                          | To make proxy user possible                           |
+| References              | Databases,Tables                      | To have references on tables                          |
+| Reload                  | Server Admin                          | To reload or refresh tables, logs and privileges      |
+| Replication client      | Server Admin                          | To ask where the slave or master servers are          |
+| Replication slave       | Server Admin                          | To read binary log events from the master             |
+| Select                  | Tables                                | To retrieve rows from table                           |
+| Show databases          | Server Admin                          | To see all databases with SHOW DATABASES              |
+| Show view               | Tables                                | To see views with SHOW CREATE VIEW                    |
+| Shutdown                | Server Admin                          | To shut down the server                               |
+| Super                   | Server Admin                          | To use KILL thread, SET GLOBAL, CHANGE MASTER, etc.   |
+| Trigger                 | Tables                                | To use triggers                                       |
+| Create tablespace       | Server Admin                          | To create/alter/drop tablespaces                      |
+| Update                  | Tables                                | To update existing rows                               |
+| Usage                   | Server Admin                          | No privileges - allow connect only                    |
++-------------------------+---------------------------------------+-------------------------------------------------------+
+32 rows in set (0.001 sec)
+
+
+Para asignar privilegios a un usuario:
+GRANT "privilegio" ON *.* TO "nombre_usuario"@"localhost" identified by "contraseña".
+
+- Si queremos que al usuario al cuál hemos asignado un privilegio pueda asignarlo a su vez a otro usuario ejecutaremos:
+GRANT "privilegio" ON *.* TO "nombre_usuario"@"localhost" identified by "contraseña" with grant option;
+
+2º- Averigua cual es la forma de asignar y revocar privilegios sobre una tabla concreta en MySQL.
+Asignar privilegios => GRANT "privilegio" ON "base_de_datos"."nombre_tabla" TO "nombre_usuario"@"localhost" identified by "contraseña".
+Revocar privilegios => REVOKE "privilegio" ON "base_de_datos"."nombre_tabla" TO "nombre_usuario"@"localhost";
+
+3º- Averigua si existe el concepto de rol en MySQL y señala las diferencias con los roles de ORACLE.
+En mysql tenemos que crear roles y a esos roles tenemos que asignarles privilegios. Vamos a añadir un ejemplo de crear roles en mysql.
+MariaDB [(none)]> create database prueba;
+Query OK, 1 row affected (0.003 sec)
+
+MariaDB [(none)]> create user usuario identified by 'usuario';
+Query OK, 0 rows affected (0.000 sec)
+
+MariaDB [(none)]> flush privileges;
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [(none)]> create role prueba;
+Query OK, 0 rows affected (0.002 sec)
+
+MariaDB [prueba]> grant prueba to usuario;
+Query OK, 0 rows affected (0.000 sec)
+
+MariaDB [prueba]> grant select, insert, update on prueba.* to usuario;
+Query OK, 0 rows affected (0.001 sec)
+
+Los roles son un conjunto de privilegios que se pueden otorgar a un usuario o a otro rol.
+
+4º- Averigua si existe el concepto de perfil como conjunto de límites sobre el uso de recursos o sobre la contraseña en MySQL y señala las diferencias con los perfiles de ORACLE.
+
+5º- Realiza consultas al diccionario de datos de MySQL para averiguar todos los privilegios que tiene un usuario concreto.
+- Creo un usuario y compruebo los privilegios que tiene
+MariaDB [information_schema]> create user usuarioej5 identified by 'usuarioej5';
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [information_schema]> 
+
+MariaDB [information_schema]> select privilege_type from user_privileges where grantee="'usuarioej5'@'%'";
++----------------+
+| privilege_type |
++----------------+
+| USAGE          |
++----------------+
+1 row in set (0.001 sec)
+
+
+MariaDB [information_schema]> select privilege_type from user_privileges where grantee="'usuario'@'%'";
++----------------+
+| privilege_type |
++----------------+
+| USAGE          |
++----------------+
+1 row in set (0.000 sec)
+
+- Asigno unos privilegios al usuario creado (usuarioej5)
+MariaDB [information_schema]> grant update,shutdown on *.* to usuarioej5 identified by 'usuarioej5';
+Query OK, 0 rows affected (0.001 sec)
+
+- Vuelvo a comprobar los privilegios
+MariaDB [information_schema]> select privilege_type from user_privileges where grantee="'usuarioej5'@'%'";
++----------------+
+| privilege_type |
++----------------+
+| UPDATE         |
+| SHUTDOWN       |
++----------------+
+2 rows in set (0.000 sec)
+
+6º- Realiza consultas al diccionario de datos en MySQL para averiguar qué usuarios pueden consultar una tabla concreta.
+- Creo una tabla en la base de datos prueba
+MariaDB [prueba]> show tables;
++------------------+
+| Tables_in_prueba |
++------------------+
+| Temporadas       |
++------------------+
+1 row in set (0.001 sec)
+
+MariaDB [prueba]> select * from Temporadas;
++--------+--------+
+| Codigo | Nombre |
++--------+--------+
+| 3      | Alta   |
+| 1      | Baja   |
+| 2      | Media  |
++--------+--------+
+3 rows in set (0.002 sec)
+
+- Asigno el privilegio a usuarioej5 para que pueda consultar esa tabla
+MariaDB [(none)]> grant select on prueba.Temporadas to usuarioej5 identified by 'usuarioej5';
+Query OK, 0 rows affected (0.002 sec)
+
+MariaDB [(none)]> flush privileges;
+Query OK, 0 rows affected (0.002 sec)
+
+- Compruebo qué usuario pueden acceder a una tabla concreta
+MariaDB [information_schema]> select * from table_privileges;
++------------------+---------------+--------------+------------+----------------+--------------+
+| GRANTEE          | TABLE_CATALOG | TABLE_SCHEMA | TABLE_NAME | PRIVILEGE_TYPE | IS_GRANTABLE |
++------------------+---------------+--------------+------------+----------------+--------------+
+| 'usuarioej5'@'%' | def           | prueba       | Temporadas | SELECT         | NO           |
++------------------+---------------+--------------+------------+----------------+--------------+
+1 row in set (0.001 sec)
+
+- Voy a darle el mismo privilegio a usuario2 para comprobar que puede consultar la tabla Temporadas de la base de datos prueba
+MariaDB [information_schema]> grant select on prueba.Temporadas to usuario2 identified by 'usuario2';
+Query OK, 0 rows affected (0.002 sec)
+
+- Compruebo de nuevo
+MariaDB [information_schema]> select * from table_privileges;
++------------------+---------------+--------------+------------+----------------+--------------+
+| GRANTEE          | TABLE_CATALOG | TABLE_SCHEMA | TABLE_NAME | PRIVILEGE_TYPE | IS_GRANTABLE |
++------------------+---------------+--------------+------------+----------------+--------------+
+| 'usuarioej5'@'%' | def           | prueba       | Temporadas | SELECT         | NO           |
+| 'usuario2'@'%'   | def           | prueba       | Temporadas | SELECT         | NO           |
++------------------+---------------+--------------+------------+----------------+--------------+
+2 rows in set (0.001 sec)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
