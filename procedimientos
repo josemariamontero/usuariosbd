@@ -1,7 +1,36 @@
 -- ORACLE --
 1º- Realiza un procedimiento llamado PermisosdeAsobreB que reciba dos nombres de usuario y muestre los permisos que tiene el primero de ellos sobre objetos del segundo.
+grantee(sh,bi,sys)
 
-create procedure PermisosdeAsobreB (p_usuario VARCHAR2, p_usuario2 VARCHAR2)
+create or replace procedure PermisosdeSistemas(p_usuario VARCHAR2)
+is
+	cursor c_privilegios
+	is
+	select distinct privilege
+	from dba_sys_privs
+	where grantee = p_usuario;
+begin
+	for i in c_privilegios loop
+		dbms_output.put_line('Privilegios de: '|| p_usuario || ' son: '|| i.privilege || ';');
+	end loop;
+end PermisosdeSistemas;
+/
+
+create or replace procedure Usuarios(p_usuario VARCHAR2)
+is
+	cursor c_usuarios
+	is
+	select distinct granted_role
+	from dba_role_privs
+	where grantee = p_usuario;
+begin
+	for i in c_usuarios loop
+		dbms_output.put_line(p_usuario|| ' tienen los siguientes roles: '||i.granted_role);
+	end loop;
+end Usuarios;
+/
+
+create or replace procedure PermisosdeAsobreB (p_usuario VARCHAR2, p_usuario2 VARCHAR2)
 is
 	cursor c_privilegios
 	is
@@ -11,6 +40,8 @@ is
 	and grantor = p_usuario2
 	and owner = p_usuario2;
 begin
+	PermisosdeSistemas(p_usuario);	
+	Usuarios(p_usuario);		
 	dbms_output.put_line('Los privilegios de: '|| p_usuario || ' sobre los objetos de: '|| p_usuario2 || ' son: ');		
 	for i in c_privilegios loop
 		dbms_output.put_line(i.privilege);
