@@ -80,6 +80,56 @@ Query OK, 0 rows affected (0.001 sec)
 Los roles son un conjunto de privilegios que se pueden otorgar a un usuario o a otro rol.
 
 4º- Averigua si existe el concepto de perfil como conjunto de límites sobre el uso de recursos o sobre la contraseña en MySQL y señala las diferencias con los perfiles de ORACLE.
+En mariadb existe el concepto de perfil que indica el conjunto de recursos usados durante una sesión. Los perfiles están controlados mediante una variable que está desactivada. Para activarla ejecutaremos ; set profiling = 1; 
+Tenemos 2 comandos: SHOW PROFILES y SHOW PROFILE.
+SHOW PROFILES => muestra una lista de las declaraciones enviadas más recientes al maestro, controlada por la variable de sesión profiling_history_size.
+MariaDB [information_schema]> show profiles;
++----------+------------+-------------------+
+| Query_ID | Duration   | Query             |
++----------+------------+-------------------+
+|        1 | 0.00055359 | show profiling    |
+|        2 | 0.00089718 | SELECT DATABASE() |
+|        3 | 0.32625041 | show databases    |
+|        4 | 0.00134065 | show tables       |
++----------+------------+-------------------+
+4 rows in set (0.000 sec)
+
+SHOW PROFILE => muestra información detallada sobre una sola declaración. Sin la cláusula for query n, la salida corresponde a la declaración ejecutada más reciente. Si la cláusula FOR QUERY n está incluida, muestra información sobre la declaración n.
+MariaDB [information_schema]> show profile;
++------------------------+----------+
+| Status                 | Duration |
++------------------------+----------+
+| Starting               | 0.000150 |
+| Checking permissions   | 0.000029 |
+| Opening tables         | 0.000105 |
+| After opening tables   | 0.000021 |
+| System lock            | 0.000014 |
+| Table lock             | 0.000022 |
+| Init                   | 0.000033 |
+| Optimizing             | 0.000029 |
+| Statistics             | 0.000041 |
+| Preparing              | 0.000055 |
+| Executing              | 0.000016 |
+| Filling schema table   | 0.000021 |
+| Checking permissions   | 0.000333 |
+| Executing              | 0.000018 |
+| Sending data           | 0.000210 |
+| End of update loop     | 0.000021 |
+| Query end              | 0.000015 |
+| Commit                 | 0.000014 |
+| Closing tables         | 0.000013 |
+| Removing tmp table     | 0.000026 |
+| Closing tables         | 0.000015 |
+| Unlocking tables       | 0.000013 |
+| Closing tables         | 0.000014 |
+| Starting cleanup       | 0.000013 |
+| Freeing items          | 0.000017 |
+| Updating status        | 0.000064 |
+| Reset for next command | 0.000017 |
++------------------------+----------+
+
+La cláusula limit se puede dar para limitar la salida a un número de filas. Si se proporciona, puede agregar el desplazamiento de salida en el conjunto completo de filas.
+
 
 5º- Realiza consultas al diccionario de datos de MySQL para averiguar todos los privilegios que tiene un usuario concreto.
 - Creo un usuario y compruebo los privilegios que tiene
